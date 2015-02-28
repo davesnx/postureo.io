@@ -1,0 +1,15 @@
+{
+  "name": "postureo.io",
+  "version": "0.1.0",
+  "description": "Scrape instagr.in and ctach access_token with instagram-node dependency",
+  "main": "app.js",
+  "author": "@davesnx",
+  "dependencies": {
+    "express": "latest",
+    "request": "latest",
+    "cheerio": "latest",
+    "instagram-node": "0.5",
+    "google": "^0.6.0",
+    "base64": "^2.1.0"
+  }
+}
