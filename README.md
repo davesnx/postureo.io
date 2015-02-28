@@ -15,7 +15,6 @@ All info in [elladodelmal.com](http://www.elladodelmal.com/2015/02/growth-hackin
 
 
 ###How to do it:
-=========
 
 ```shell
 npm install
@@ -28,7 +27,6 @@ node app.js
 ```
 
 ###Explain the requests
-=========
 
 #####/blend
 Request __instagr.in/blend__ and get all "next_url" and do the Instagram requests.
@@ -44,7 +42,6 @@ Get all links from __'tokens.txt'__ and do the Instagram requests.
 
 
 ###Explain the txts
-=========
 
 #####txt/urls.txt
 All urls indexed by Google
@@ -54,7 +51,6 @@ All tokens catched in instagr.in/blend and childs
 (Could be repeated tokens)
 
 ###Dependencies
-=========
 - express 
 - request 
 - [cherrio](https://www.npmjs.com/package/cherrio)
