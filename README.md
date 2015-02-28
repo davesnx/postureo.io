@@ -36,8 +36,12 @@ Request __instagr.in/blend__ and get all "next_url" and do the Instagram request
 #####/scrape
 Scrape google indexed instagr.in/u links and added to __'urls.txt'__
 
-#####/readFile 
+#####/read/urls
 Get all links from __'urls.txt'__ and request that links regex the access_tokens and do the Instagram requests.
+
+#####/read/tokens
+Get all links from __'tokens.txt'__ and do the Instagram requests.
+
 
 ###Explain the txts
 =========

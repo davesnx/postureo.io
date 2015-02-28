@@ -101,29 +101,54 @@ app.get('/blend', function (req, res) {
     res.end("Check console!");
 });
 
-app.get('/readFile', function() {
+app.get('/read/:what', function (res, req) {
 
-    // Read access_tokens.txt and for eachline call FollowInsta
+    var what = req.params.what;
 
-    fs.readFile('txt/urls.txt', {encoding: 'utf-8', flag: 'rs'}, function(e, data) {
-        if (e) return console.log(e);
-        else { console.log("File readed."); }
+    if(what == "urls") {
 
-        data = data.split("\n").slice(0, -1);
+        // Read .txt and for eachline call FollowInsta or FollowToken 
 
-        for (var i in data) {
+        fs.readFile('txt/' + what + '.txt', {encoding: 'utf-8', flag: 'rs'}, function(e, data) {
+            if (e) return console.log(e);
+            else { console.log("File readed."); }
 
-            url = data[i];
+            data = data.split("\n").slice(0, -1);
 
-            console.log(i + " > " + url);
+            for (var i in data) {
 
-            followInsta(url);
-        }
-    });
+                url = data[i];
+
+                console.log(i + " > " + url);
+
+                followInsta(url);
+            }
+        });
+
+    } else if (what == "tokens") {
+
+        fs.readFile('txt/tokens.txt', {encoding: 'utf-8', flag: 'rs'}, function(e, data) {
+            if (e) return console.log(e);
+            else { console.log("File readed."); }
+
+            data = data.split("\n").slice(0, -1);
+
+            // For every line in txt file
+            for (var i in data) {
+
+                // get the url
+                url = data[i];
+                // Call follow with Token
+                followToken(url);
+            }
+        });
+    } else res.end("Bad :what parameter");
+
+    res.end("Check console and 'txt/" + what + ".txt'");
 
 });
 
-app.get('/readBlend', function() {
+app.get('/readtokens', function (res, req) {
 
     fs.readFile('txt/tokens.txt', {encoding: 'utf-8', flag: 'rs'}, function(e, data) {
         if (e) return console.log(e);
@@ -138,9 +163,10 @@ app.get('/readBlend', function() {
             url = data[i];
             // Call follow with Token
             followToken(url);
-
         }
     });
+
+    res.end("Check console and 'txt/tokens.txt'");
 
 });
 
