@@ -8,7 +8,7 @@ var insta         = require('instagram-node').instagram({});
 var base64_decode = require('base64').decode;
 var app           = express();
 
-var instagrin = "https://instagr.in/";
+var instagrin = "https://instagr.in";
 
 // to implement: Proxy the google requests for bypassing Google restiction
 app.get('/scrape', function (req, res) {
@@ -29,11 +29,11 @@ app.get('/scrape', function (req, res) {
 
         for (var i = 0; i < links.length; ++i) {
 
-          // console.log(links[i].link);
+          console.log(links[i].link);
 
           // Write links in .txt
-          fs.appendFile('txt/access_tokens.txt', links[i].link + "\n", function(err){
-                console.log(links[i].link + ' added');
+          fs.appendFile('txt/urls.txt', links[i].link + "\n", function(err){
+
           });
         }
         
@@ -44,14 +44,18 @@ app.get('/scrape', function (req, res) {
 
        } 
     });
+
+    res.end("Check console!");
 });
 
 app.get('/blend', function (req, res) {
     
     // https://instagr.in/blend
-    var blend = instagrin + "blend/";
+    var blend = instagrin + "/blend/";
 
     request(blend, function (err, res, html) {
+
+        console.log("Requests all this links: ");
 
         if (!err && res.statusCode == 200) {
 
@@ -63,9 +67,13 @@ app.get('/blend', function (req, res) {
                 
                 url = $(this).attr("href");
 
-                request(instagrin + url, function (err, res, html) {
+                console.log(instagrin + url);
+
+                request(instagrin + '/' + url, function (err, res, html) {
 
                     if (!err && res.statusCode == 200) {
+
+                        console.log("Save all this tokens on 'txt/tokens.txt'");
 
                         var $ = cheerio.load(html);
 
@@ -76,9 +84,9 @@ app.get('/blend', function (req, res) {
                             var at = /access_token=(.*)\&count/.exec( $(this).text() );
                             if(at) at = at[1];
 
-                            // console.log(at);
+                            console.log(at);
 
-                            fs.appendFile('blend_urls.txt', at + "\n", function(err){
+                            fs.appendFile('txt/tokens.txt', at + "\n", function(err){
 
                             });
 
@@ -89,11 +97,15 @@ app.get('/blend', function (req, res) {
 
         } else console.log(err);
     });
+
+    res.end("Check console!");
 });
 
 app.get('/readFile', function() {
 
-    fs.readFile('txt/access_tokens.txt', {encoding: 'utf-8', flag: 'rs'}, function(e, data) {
+    // Read access_tokens.txt and for eachline call FollowInsta
+
+    fs.readFile('txt/urls.txt', {encoding: 'utf-8', flag: 'rs'}, function(e, data) {
         if (e) return console.log(e);
         else { console.log("File readed."); }
 
@@ -113,7 +125,7 @@ app.get('/readFile', function() {
 
 app.get('/readBlend', function() {
 
-    fs.readFile('txt/100_blend_urls.txt', {encoding: 'utf-8', flag: 'rs'}, function(e, data) {
+    fs.readFile('txt/tokens.txt', {encoding: 'utf-8', flag: 'rs'}, function(e, data) {
         if (e) return console.log(e);
         else { console.log("File readed."); }
 
@@ -134,6 +146,8 @@ app.get('/readBlend', function() {
 
 
 function followInsta (url) {
+
+        // Request url and get at
 
         request(url, function (err, res, html) {
 
@@ -164,7 +178,7 @@ function followInsta (url) {
 function followToken(at) {
 
     if (at) {
-        // Access instagram api with 'at' acces_token
+        // Access instagram api with 'at' access_token
         insta.use({
             access_token: at,
         });

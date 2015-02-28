@@ -11,7 +11,7 @@ Use **Instagram API** for following some user or whatever you want with the API.
 `With serious problems with 20req/h from Instagram API and Google restrictions.`
 
 >
-All info in [elladodelmal.com] (http://www.elladodelmal.com/2015/02/growth-hacking-en-instagram-como-robar.html) in a post of **Growth Hacking** in Instagram by **Ariel Ignacio La Cono** [@IgnacioLaCono](https://twitter.com/IgnacioLaCono)
+All info in [elladodelmal.com](http://www.elladodelmal.com/2015/02/growth-hacking-en-instagram-como-robar.html) in a post of **Growth Hacking** in Instagram by **Ariel Ignacio La Cono** [@IgnacioLaCono](https://twitter.com/IgnacioLaCono)
 
 
 ###How to do it:
@@ -34,12 +34,23 @@ node app.js
 Request __instagr.in/blend__ and get all "next_url" and do the Instagram requests.
 
 #####/scrape
-Scrape google indexed instagr.in/u links and added to __'acees_tokens.txt'__
+Scrape google indexed instagr.in/u links and added to __'urls.txt'__
 
 #####/readFile 
-Get all links from __'access_tokens.txt'__ and request that links regex the access_tokens and do the Instagram requests.
+Get all links from __'urls.txt'__ and request that links regex the access_tokens and do the Instagram requests.
+
+###Explain the txts
+=========
+
+#####txt/urls.txt
+All urls indexed by Google
+
+#####txt/tokens.txt
+All tokens catched in instagr.in/blend and childs
+(Could be repeated tokens)
 
 ###Dependencies
+=========
 - express 
 - request 
 - [cherrio](https://www.npmjs.com/package/cherrio)
