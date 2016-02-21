@@ -1,7 +1,7 @@
 {
   "name": "postureo.io",
   "version": "0.1.0",
-  "description": "Scrape instagr.in and ctach access_token with instagram-node dependency",
+  "description": "Scrape instagr.in and catch access_token with instagram-node dependency",
   "author": "@davesnx",
   "dependencies": {
     "babel-cli": "^6.0.0",
