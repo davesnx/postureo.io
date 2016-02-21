@@ -5,19 +5,18 @@ import Bing from 'node-bing-api' // eslint-disable-line no-unused-var
 import instagram from 'instagram-node'
 
 require('dotenv').config()
-const { BING_API_KEY, INSTAGRAM_UID } = process.env // eslint-disable-line no-unused-var
+const { BING_API_KEY, INSTAGRAM_UID } = process.env
 
 const insta = instagram.instagram()
 Bing({ accKey: BING_API_KEY }) // eslint-disable-line no-unused-var
 const INSTAGRIN_URL = 'https://instagr.in'
 const BLEND_PAGE_URL = `${INSTAGRIN_URL}/blend/`
 
-// const querySiteInstagrin = 'site:instagr.in User Profile'
-
 // TODO: Create a database for save the accessToken, with followed, date, picturesLiked
 // TODO: Create method to like media items https://github.com/mckelvey/instagram-node-lib
 // TODO: Search 'https://instagr.in/t/{:tag}' and getAccessToken
 // https://datamarket.azure.com/dataset/explore/bing/search
+// const querySiteInstagrin = 'site:instagr.in User Profile'
 // Bing.web(querySiteInstagrin, {
 //   top: 1, // Number of results (max 50)
 //   skip: 3 // Skip first 3 results
@@ -45,8 +44,8 @@ function getAccessTokenFromUrl (url) {
   return rg.exec(url)[1]
 }
 
-function followUser (accessToken, userId) {
-  console.log(`Follow ${userId} by ${accessToken}`)
+function followUser (accessToken, userId = INSTAGRAM_UID) {
+  console.log(`👌  Follow ${userId} by ${accessToken}`)
   insta.use({ access_token: accessToken })
   insta.set_user_relationship(userId, 'follow', (err, result, remaining, limit) => {
     if (err) console.log('Error ' + err.code + ': ' + err.error_message)
@@ -59,7 +58,7 @@ function scrappBlendUrls ($) {
     let blendUrls = []
     $('.blend-title a').each((i, el) => {
       // TODO: Check if it's a correct link/DOMElement and if not reject it
-      console.log(`Reading: ${i} ${$(el).text()}`)
+      console.log(`📖  Reading: ${i} ${$(el).text()}`)
       blendUrls.push(`${INSTAGRIN_URL}${$(el).attr('href')}`)
     })
     resolve(blendUrls)
@@ -71,9 +70,9 @@ function cheerioLoader (body) {
 }
 
 function scrapp (url) {
-  console.log(`Scrapping ${url}`)
+  console.log(`🌐  Scrapping ${url}`)
   return new Promise((resolve, reject) => {
-    request({uri: url, transform: cheerioLoader})
+    request({ uri: url, transform: cheerioLoader })
       .then((html) => resolve(html))
       .catch((err) => reject(err))
   })
@@ -86,7 +85,7 @@ function main () {
     .then($childBlendDOMs => Promise.all($childBlendDOMs.map($childBlendDOM => crawlAccessTokens($childBlendDOM))))
     .then(accessTokens => _.chunk(accessTokens).map(accessToken => {
       setTimeout(() => {
-        console.log('accessToken', accessToken)
+        console.log('accessToken ->', accessToken)
         // followUser(accessToken, INSTAGRAM_UID)
       }, 3000)
     }))
