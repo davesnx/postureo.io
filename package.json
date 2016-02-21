@@ -8,10 +8,10 @@
     "babel-preset-es2015": "^6.0.0",
     "babel-preset-stage-0": "^6.5.0",
     "cheerio": "^0.20.0",
+    "commander": "^2.9.0",
     "dotenv": "^2.0.0",
     "instagram-node": "0.5",
     "js-base": "^2.1.9",
-    "lodash": "^4.5.0",
     "node-bing-api": "^2.3.0"
   },
   "scripts": {
@@ -20,10 +20,7 @@
     "test": ""
   },
   "standard": {
-    "globals": [
-      "myVar1",
-      "myVar2"
-    ]
+    "globals": []
   },
   "babel": {
     "presets": [
