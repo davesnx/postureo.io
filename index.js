@@ -34,7 +34,7 @@ function crawlAccessTokens ($) {
     nextUrlChildrens.each((i, el) => {
       ats.push(getAccessTokenFromUrl($(el).text()))
     })
-    resolve(ats)
+    resolve(ats[0])
   })
 }
 
@@ -83,10 +83,10 @@ function main () {
     .then(scrappBlendUrls)
     .then(childBlendUrls => Promise.all(childBlendUrls.map(childBlendUrl => scrapp(childBlendUrl))))
     .then($childBlendDOMs => Promise.all($childBlendDOMs.map($childBlendDOM => crawlAccessTokens($childBlendDOM))))
-    .then(accessTokens => _.chunk(accessTokens).map(accessToken => {
+    .then(accessTokens => accessTokens.map(accessToken => {
       setTimeout(() => {
         console.log('accessToken ->', accessToken)
-        // followUser(accessToken, INSTAGRAM_UID)
+        followUser(accessToken, INSTAGRAM_UID)
       }, 3000)
     }))
     .catch(err => console.log(err))
