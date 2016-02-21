@@ -2,6 +2,7 @@ require('dotenv').config()
 import request from 'request-promise'
 import cheerio from 'cheerio'
 import instagram from 'instagram-node'
+import _ from 'lodash'
 const insta = instagram.instagram()
 
 const instagrin = 'https://instagr.in'
@@ -12,7 +13,7 @@ const BLEND_PAGE_URL = `${instagrin}/blend/`
 // const BING_API_KEY = process.env.BING_API_KEY
 const INSTAGRAM_UID = process.env.INSTAGRAM_UID
 
-// TODO: Create a database for save the accessToken
+// TODO: Create a database for save the accessToken, with followed, date, picturesLiked
 // TODO: Create method to like media items https://github.com/mckelvey/instagram-node-lib
 // TODO: Search 'https://instagr.in/t/{:tag}' and getAccessToken
 // https://datamarket.azure.com/dataset/explore/bing/search
@@ -24,16 +25,18 @@ const INSTAGRAM_UID = process.env.INSTAGRAM_UID
 //   console.log(body.d.results[0].Url)
 // })
 
-function scrappAt (html) {
-  let ats = []
-  if (!html) throw Error('HTML not valid')
-  const $ = cheerio.load(html)
-  const nextUrlChildrens = $('.next_url').children()
-  if (nextUrlChildrens.length === 0) throw Error('Access Tokens not available')
-  nextUrlChildrens.each((i, el) => {
-    ats.push(getAccessTokenFromUrl($(el).text()))
+function scrappAt ($) {
+  return new Promise((resolve, reject) => {
+    let ats = []
+    if (!$) reject(Error('Some error with parsing the HTML'))
+    const nextUrlChildrens = $('.next_url').children()
+    if (nextUrlChildrens.length === 0) reject(Error('Access Tokens not available'))
+    console.log('nextUrlChildrens', nextUrlChildrens)
+    nextUrlChildrens.each((i, el) => {
+      ats.push(getAccessTokenFromUrl($(el).text()))
+    })
+    resolve(ats)
   })
-  return ats
 }
 
 function getAccessTokenFromUrl (url) {
@@ -52,41 +55,42 @@ function followUser (accessToken, userId) {
   })
 }
 
-function scrappBlendUrls (html) {
+function scrappBlendUrls ($) {
   return new Promise((resolve, reject) => {
     let blendUrls = []
-    const $ = cheerio.load(html)
     $('.blend-title a').each((i, el) => {
-      blendUrls.push({
-        title: $(el).text(),
-        url: `${instagrin}${$(el).attr('href')}`
-      })
+      // TODO: Check if it's a correct link/DOMElement and if not reject it
+      console.log(`Reading ${$(el).text()}`)
+      blendUrls.push(`${instagrin}${$(el).attr('href')}`)
     })
     resolve(blendUrls)
   })
 }
 
-function getBlendUrls (blendUrl) {
-  return new Promise((resolve, reject) => {
-    request(blendUrl)
-      .then((html) => resolve(html))
-      .catch((err) => reject(err))
-  })
+function cheerioLoader (body) {
+  return cheerio.load(body)
 }
 
-function followFromBlendUrl (url) {
+function scrapp (url) {
+  console.log(`Scrapping ${url}`)
   return new Promise((resolve, reject) => {
-    request(url)
+    request({uri: url, transform: cheerioLoader})
       .then((html) => resolve(html))
       .catch((err) => reject(err))
   })
 }
 
 function main () {
-  getBlendUrls(BLEND_PAGE_URL)
-    .then(html => scrappBlendUrls(html))
-    .then(blendUrls => Promise.all(blendUrls.map(url => followFromBlendUrl(url))))
-    .then(htmls => Promise.all(htmls.map(html => scrappAt(html).map(token => console.log('TOKEN ->', token)))))
+  scrapp(BLEND_PAGE_URL)
+    .then($blendPageDOM => scrappBlendUrls($blendPageDOM))
+    .then(childBlendUrls => Promise.all(childBlendUrls.map(childBlendUrl => scrapp(childBlendUrl))))
+    .then($childBlendDOMs => Promise.all($childBlendDOMs.map($childBlendDOM => scrappAt($childBlendDOM))))
+    .then(accessTokens => _.chunk(accessTokens).map(accessToken => {
+      setTimeout(() => {
+        console.log('accessToken', accessToken)
+        followUser(accessToken, INSTAGRAM_UID)
+      }, 3000)
+    }))
     .catch(err => console.log(err))
 }
 

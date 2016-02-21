@@ -11,6 +11,7 @@
     "dotenv": "^2.0.0",
     "instagram-node": "0.5",
     "js-base": "^2.1.9",
+    "lodash": "^4.5.0",
     "node-bing-api": "^2.3.0"
   },
   "scripts": {
