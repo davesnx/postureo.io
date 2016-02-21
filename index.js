@@ -84,21 +84,10 @@ function followFromBlendUrl (url) {
 
 function main () {
   getBlendUrls(BLEND_PAGE_URL)
-    .then((html) => scrappBlendUrls(html))
-    .then((blendUrls) => blendUrls.map((url) => followFromBlendUrl(url)))
-    .then((p) => {
-      p.map((r) => {
-        r.then((html) => {
-          scrappAt(html).map((token) => {
-            console.log('TOKEN ->', token)
-            setTimeout(() => {
-              followUser(token, INSTAGRAM_UID)
-            }, 3000)
-          })
-        })
-      })
-    })
-    .catch((err) => console.log(err))
+    .then(html => scrappBlendUrls(html))
+    .then(blendUrls => Promise.all(blendUrls.map(url => followFromBlendUrl(url))))
+    .then(htmls => Promise.all(htmls.map(html => scrappAt(html).map(token => console.log('TOKEN ->', token)))))
+    .catch(err => console.log(err))
 }
 
 main()
