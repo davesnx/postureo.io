@@ -15,14 +15,6 @@ function saveAccessToken (accessToken) {
   // at.save()
 }
 
-// TODO: Create a database for save the accessToken, with followed, date, picturesLiked
-// TODO: Use Bing for search for 'site:instagr.in User Profile' and scrap
-// TODO: Implement crawlAccessTokenFromUserProfile with base64 decode
-// TODO: Create method to like media items https://github.com/mckelvey/instagram-node-lib
-// TODO: Create a cli parameters for pass process.env
-// TODO: Implement the commands https://www.npmjs.com/package/commander
-// TODO: Create a menu for launch the commands
-
 // https://datamarket.azure.com/dataset/explore/bing/search
 // const querySiteInstagrin = 'site:instagr.in User Profile'
 // Bing.web(querySiteInstagrin, {
