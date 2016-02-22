@@ -1,19 +1,12 @@
-const { DATABASE, PORT } = process.env
 import mongoose from 'mongoose'
+import {DATABASE, PORT, CONNECT_OPTIONS} from './config'
 
 function connect () {
-  const options = {
-    server: {
-      socketOptions: {
-        keepAlive: 1
-      }
-    }
-  }
-  return mongoose.connect(DATABASE, options).connection
+  return mongoose.connect(DATABASE, CONNECT_OPTIONS).connection
 }
 
 function listen () {
-  console.log(`Express app started on port ${PORT}`)
+  console.log(`Database connected on port ${PORT}`)
 }
 
 connect()

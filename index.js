@@ -2,10 +2,8 @@ import request from 'request-promise'
 import cheerio from 'cheerio'
 import Bing from 'node-bing-api' // eslint-disable-line no-unused-var
 import instagram from 'instagram-node'
-
 require('./database.js')
-require('dotenv').config()
-const { BING_API_KEY, INSTAGRAM_UID } = process.env
+import { BING_API_KEY, INSTAGRAM_UID } from './config'
 
 const insta = instagram.instagram()
 Bing({ accKey: BING_API_KEY }) // eslint-disable-line no-unused-var
