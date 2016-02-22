@@ -42,4 +42,4 @@ accessTokensSchema.pre('save', (next) => {
   // Validate that the model have always the AccessToken
 })
 
-export default mongoose.model('AccessToken', accessTokensSchema)
+export default model('AccessToken', accessTokensSchema)
