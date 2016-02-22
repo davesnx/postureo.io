@@ -1,9 +1,11 @@
+import './database'
 import request from 'request-promise'
 import cheerio from 'cheerio'
 import Bing from 'node-bing-api' // eslint-disable-line no-unused-var
 import instagram from 'instagram-node'
-// import * as At from './database' // eslint-disable-line no-unused-var
+import At from './model'
 import { BING_API_KEY, INSTAGRAM_UID } from './config'
+import {debug} from './utils.js'
 
 const insta = instagram.instagram()
 const INSTAGRIN_URL = 'https://instagr.in'
@@ -11,8 +13,15 @@ const BLEND_PAGE_URL = `${INSTAGRIN_URL}/blend/`
 Bing({ accKey: BING_API_KEY }) // eslint-disable-line no-unused-var
 
 function saveAccessToken (accessToken) {
-  // const at = new At()
-  // at.save()
+  debug(`💾  Saved ${accessToken}`)
+  const at = At({
+    followed: false,
+    at: accessToken
+  })
+  at.save((err) => {
+    if (err) debug(err)
+    console.log('accessToken saved!')
+  })
 }
 
 // https://datamarket.azure.com/dataset/explore/bing/search
@@ -21,8 +30,8 @@ function saveAccessToken (accessToken) {
 //   top: 1, // Number of results (max 50)
 //   skip: 3 // Skip first 3 results
 // }, function (error, res, body) {
-//   if (error) console.log('error', error)
-//   console.log(body.d.results[0].Url)
+//   if (error) debug('error', error)
+//   debug(body.d.results[0].Url)
 // })
 
 function scrappAccessTokens ($dom) {
@@ -45,14 +54,12 @@ function getAccessTokenFromUrl (url) {
 }
 
 function followUser (accessToken, userId = INSTAGRAM_UID) {
-  console.log(`👌  Follow ${userId} by ${accessToken}`)
-  // TODO: Save model to database
+  debug(`👌  Follow ${userId} by ${accessToken}`)
   insta.use({ access_token: accessToken })
   insta.set_user_relationship(userId, 'follow', (err, result, remaining, limit) => {
-    if (err) console.log('Error ' + err.code + ': ' + err.error_message)
-    else console.log(result)
+    if (err) debug('Error ' + err.code + ': ' + err.error_message)
+    else debug(result)
   })
-  saveAccessToken(accessToken)
 }
 
 function getBlendUrls ($dom) {
@@ -60,7 +67,7 @@ function getBlendUrls ($dom) {
     let blendUrls = []
     $dom('.blend-title a').each((i, el) => {
       // TODO: Check if it's a correct link/DOMElement and if not reject it
-      console.log(`📖  Reading: ${i} ${$dom(el).text()}`)
+      debug(`📖  Reading: ${i} ${$dom(el).text()}`)
       blendUrls.push(`${INSTAGRIN_URL}${$dom(el).attr('href')}`)
     })
     resolve(blendUrls)
@@ -74,7 +81,7 @@ function cheerioLoader (body) {
 // TODO: way of passing the transform
 // Rewrite the scrappMethods to callbacks
 function scrapp (url) {
-  console.log(`🌐  Scrapping ${url}`)
+  debug(`🌐  Scrapping ${url}`)
   return new Promise((resolve, reject) => {
     request({ uri: url, transform: cheerioLoader })
       .then((html) => resolve(html))
@@ -97,11 +104,12 @@ function main () {
     .then(getAccessTokens)
     .then(accessTokens => accessTokens.map(accessToken => {
       setTimeout(() => {
-        console.log('accessToken ->', accessToken)
-        followUser(accessToken, INSTAGRAM_UID)
-      }, 10)
+        debug('accessToken ->', accessToken)
+        saveAccessToken(accessToken)
+        // followUser(accessToken, INSTAGRAM_UID)
+      }, 100)
     }))
-    .catch(err => console.log(err))
+    .catch(err => debug(err))
 }
 
 main()

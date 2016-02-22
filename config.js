@@ -4,7 +4,8 @@ const {
   BING_API_KEY,
   INSTAGRAM_UID,
   DATABASE,
-  PORT
+  PORT,
+  DEBUG
 } = process.env
 
 const CONNECT_OPTIONS = {
@@ -20,5 +21,6 @@ export {
   INSTAGRAM_UID,
   DATABASE,
   PORT,
-  CONNECT_OPTIONS
+  CONNECT_OPTIONS,
+  DEBUG
 }
