@@ -2,8 +2,7 @@ import request from 'request-promise'
 import cheerio from 'cheerio'
 import Bing from 'node-bing-api' // eslint-disable-line no-unused-var
 import instagram from 'instagram-node'
-import './database'
-import At from './accessTokenModel'
+import * as At from './database'
 
 const insta = instagram.instagram()
 Bing({ accKey: BING_API_KEY }) // eslint-disable-line no-unused-var
