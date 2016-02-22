@@ -3,6 +3,7 @@ import cheerio from 'cheerio'
 import Bing from 'node-bing-api' // eslint-disable-line no-unused-var
 import instagram from 'instagram-node'
 
+require('./database.js')
 require('dotenv').config()
 const { BING_API_KEY, INSTAGRAM_UID } = process.env
 
@@ -46,11 +47,12 @@ function getAccessTokenFromUrl (url) {
 
 function followUser (accessToken, userId = INSTAGRAM_UID) {
   console.log(`👌  Follow ${userId} by ${accessToken}`)
-  insta.use({ access_token: accessToken })
-  insta.set_user_relationship(userId, 'follow', (err, result, remaining, limit) => {
-    if (err) console.log('Error ' + err.code + ': ' + err.error_message)
-    else console.log(result)
-  })
+  // TODO: Save model to database
+  // insta.use({ access_token: accessToken })
+  // insta.set_user_relationship(userId, 'follow', (err, result, remaining, limit) => {
+  //   if (err) console.log('Error ' + err.code + ': ' + err.error_message)
+  //   else console.log(result)
+  // })
 }
 
 function scrappBlendUrls ($) {
@@ -89,7 +91,7 @@ function main () {
       setTimeout(() => {
         console.log('accessToken ->', accessToken)
         followUser(accessToken, INSTAGRAM_UID)
-      }, 3000)
+      }, 10)
     }))
     .catch(err => console.log(err))
 }
