@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import Promise from 'bluebird'
 import './database'
 import request from 'request-promise'
@@ -7,6 +8,7 @@ import At from './model'
 import { BING_API_KEY, INSTAGRAM_UID } from './config'
 import {debug} from './utils.js'
 import { Base64 } from 'js-base64'
+import cmd from 'commander'
 
 const insta = instagram.instagram()
 const INSTAGRIN_URL = 'https://instagr.in'
@@ -72,7 +74,7 @@ function scrapp (url) {
 function getBingResults (query) {
   return new Promise((resolve, reject) => {
     Bing.web(query, {
-      top: 40, // Number of results (max 50)
+      top: 20, // Number of results (max 50)
       skip: 1
     }, (err, res, body) => {
       if (err) reject(err)
@@ -83,13 +85,16 @@ function getBingResults (query) {
 
 function getAccessTokenFromUserProfile ($dom) {
   return new Promise((resolve, reject) => {
-    const urlAccessToken = getAccessTokenFromUrl(decodeUrl($dom('.next_url').text()))
+    const elem = $dom('.next_url')
+    if (!elem) reject(new Error(`Can't found a access_token on UserProfile`))
+    const urlAccessToken = getAccessTokenFromUrl(decodeUrl(elem.text()))
     if (!urlAccessToken) reject(Error('urlAccessToken not valid'))
     resolve(urlAccessToken)
   })
 }
 
 function decodeUrl (string) {
+  if (string.length === 0) throw Error(`string to decode isn't correct`)
   return Base64.decode(string)
 }
 
@@ -97,16 +102,8 @@ function getUrlsFromBingResults (results) {
   return Promise.all(results.map(result => result.Url))
 }
 
-function getAccessTokenFromUsersProfile ($doms) {
-  return Promise.all($doms.map(getAccessTokenFromUserProfile))
-}
-
 function getAccessTokens ($doms) {
   return Promise.all($doms.map(scrappAccessTokens))
-}
-
-function map (arr, fn) {
-  return Promise.all(arr.map(fn))
 }
 
 function scrappUrls (urls) {
@@ -135,7 +132,6 @@ function getBlendUrls ($dom) {
   return new Promise((resolve, reject) => {
     let urls = []
     $dom('.blend-title a').each((i, el) => {
-      // TODO: Check if it's a correct link/DOMElement and if not reject it
       const elm = $dom(el)
       if (!elm) reject(Error(`Blend URL isn't correct`))
       debug(`📖  Reading: ${i} ${elm.text()}`)
@@ -153,21 +149,33 @@ function followAndSaveTokens (tokens) {
 }
 
 function main () {
-  // Command: blends (?) - slow
-  // scrapp(BLEND_PAGE_URL)
-  //   .then(getBlendUrls)
-  //   .then(scrappUrls)
-  //   .then(getAccessTokens)
-  //   .then(followAndSaveTokens)
-  //   .catch(err => debug(err))
+  cmd
+    .version('0.0.1')
+    .option('-p, --peppers', 'Add peppers')
+    .option('-P, --pineapple', 'Add pineapple')
+    .option('-b, --bbq-sauce', 'Add bbq sauce')
+    .option('-c, --cheese [type]', 'Add the specified type of cheese [marble]', 'marble')
+    .parse(process.argv)
 
-  // Command: bing - fast
-  getBingResults(QUERY_INSTAGRIN_USERS)
-    .then(getUrlsFromBingResults)
-    .then(scrappUserProfiles)
-    .then(followUsers)
-    .then(saveAccessTokens)
-    .catch(err => debug(err))
+  cmd.on('blend', () => {
+    // Command: blends (?) - slow
+    scrapp(BLEND_PAGE_URL)
+      .then(getBlendUrls)
+      .then(scrappUrls)
+      .then(getAccessTokens)
+      .then(followAndSaveTokens)
+      .catch(err => debug(err))
+  })
+
+  cmd.on('bind', () => {
+    // Command: bing - fast
+    getBingResults(QUERY_INSTAGRIN_USERS)
+      .then(getUrlsFromBingResults)
+      .then(scrappUserProfiles)
+      .then(followUsers)
+      .then(saveAccessTokens)
+      .catch(err => debug(err))
+  })
 }
 
 main()
