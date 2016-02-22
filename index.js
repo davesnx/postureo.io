@@ -2,17 +2,17 @@ import request from 'request-promise'
 import cheerio from 'cheerio'
 import Bing from 'node-bing-api' // eslint-disable-line no-unused-var
 import instagram from 'instagram-node'
-import * as At from './database'
-
-const insta = instagram.instagram()
-Bing({ accKey: BING_API_KEY }) // eslint-disable-line no-unused-var
-const INSTAGRIN_URL = 'https://instagr.in'
-const BLEND_PAGE_URL = `${INSTAGRIN_URL}/blend/`
+import * as At from './database' // eslint-disable-line no-unused-var
 import { BING_API_KEY, INSTAGRAM_UID } from './config'
 
+const insta = instagram.instagram()
+const INSTAGRIN_URL = 'https://instagr.in'
+const BLEND_PAGE_URL = `${INSTAGRIN_URL}/blend/`
+Bing({ accKey: BING_API_KEY }) // eslint-disable-line no-unused-var
+
 function saveAccessToken (accessToken) {
-  const at = new At()
-  at.save()
+  // const at = new At()
+  // at.save()
 }
 
 // TODO: Create a database for save the accessToken, with followed, date, picturesLiked
@@ -33,14 +33,14 @@ function saveAccessToken (accessToken) {
 //   console.log(body.d.results[0].Url)
 // })
 
-function crawlAccessTokens ($) {
+function scrappAccessTokens ($dom) {
   return new Promise((resolve, reject) => {
     let ats = []
-    if (!$) reject(Error('Some error with crawling the HTML'))
-    const nextUrlChildrens = $('.next_url').children()
+    if (!$dom) reject(Error('Some error with crawling the HTML'))
+    const nextUrlChildrens = $dom('.next_url').children()
     if (nextUrlChildrens.length === 0) reject(Error('Access Tokens not available'))
     nextUrlChildrens.each((i, el) => {
-      ats.push(getAccessTokenFromUrl($(el).text()))
+      ats.push(getAccessTokenFromUrl($dom(el).text()))
     })
     resolve(ats[0])
   })
@@ -51,7 +51,6 @@ function getAccessTokenFromUrl (url) {
   if (!rg.test(url)) throw Error('AccessTokenUrl isn\'t correct')
   return rg.exec(url)[1]
 }
-
 
 function followUser (accessToken, userId = INSTAGRAM_UID) {
   console.log(`👌  Follow ${userId} by ${accessToken}`)
@@ -64,13 +63,13 @@ function followUser (accessToken, userId = INSTAGRAM_UID) {
   saveAccessToken(accessToken)
 }
 
-function scrappBlendUrls ($) {
+function getBlendUrls ($dom) {
   return new Promise((resolve, reject) => {
     let blendUrls = []
-    $('.blend-title a').each((i, el) => {
+    $dom('.blend-title a').each((i, el) => {
       // TODO: Check if it's a correct link/DOMElement and if not reject it
-      console.log(`📖  Reading: ${i} ${$(el).text()}`)
-      blendUrls.push(`${INSTAGRIN_URL}${$(el).attr('href')}`)
+      console.log(`📖  Reading: ${i} ${$dom(el).text()}`)
+      blendUrls.push(`${INSTAGRIN_URL}${$dom(el).attr('href')}`)
     })
     resolve(blendUrls)
   })
@@ -91,11 +90,19 @@ function scrapp (url) {
   })
 }
 
+function getAccessTokens ($doms) {
+  return Promise.all($doms.map($dom => scrappAccessTokens($dom)))
+}
+
+function scrappUrls (urls) {
+  return Promise.all(urls.map(url => scrapp(url)))
+}
+
 function main () {
   scrapp(BLEND_PAGE_URL)
-    .then(scrappBlendUrls)
-    .then(childBlendUrls => Promise.all(childBlendUrls.map(childBlendUrl => scrapp(childBlendUrl))))
-    .then($childBlendDOMs => Promise.all($childBlendDOMs.map($childBlendDOM => crawlAccessTokens($childBlendDOM))))
+    .then(getBlendUrls)
+    .then(scrappUrls)
+    .then(getAccessTokens)
     .then(accessTokens => accessTokens.map(accessToken => {
       setTimeout(() => {
         console.log('accessToken ->', accessToken)
