@@ -2,7 +2,7 @@ import request from 'request-promise'
 import cheerio from 'cheerio'
 import Bing from 'node-bing-api' // eslint-disable-line no-unused-var
 import instagram from 'instagram-node'
-import * as At from './database' // eslint-disable-line no-unused-var
+// import * as At from './database' // eslint-disable-line no-unused-var
 import { BING_API_KEY, INSTAGRAM_UID } from './config'
 
 const insta = instagram.instagram()
