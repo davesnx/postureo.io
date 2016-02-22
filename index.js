@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import Promise from 'bluebird'
+// import Promise from 'bluebird'
 import './database'
 import request from 'request-promise'
 import cheerio from 'cheerio'
@@ -8,7 +8,7 @@ import At from './model'
 import { BING_API_KEY, INSTAGRAM_UID } from './config'
 import {debug} from './utils.js'
 import { Base64 } from 'js-base64'
-import cmd from 'commander'
+import cli from 'commander'
 
 const insta = instagram.instagram()
 const INSTAGRIN_URL = 'https://instagr.in'
@@ -34,9 +34,9 @@ function saveAccessToken (accessToken) {
 function scrappAccessTokens ($dom) {
   return new Promise((resolve, reject) => {
     let ats = []
-    if (!$dom) reject(Error('Some error with crawling the HTML'))
+    if (!$dom) debug('Some error with crawling the HTML')
     const nextUrlChildrens = $dom('.next_url').children()
-    if (nextUrlChildrens.length === 0) reject(Error('Access Tokens not available'))
+    if (nextUrlChildrens.length === 0) debug('Access Tokens not available')
     nextUrlChildrens.each((i, el) => {
       ats.push(getAccessTokenFromUrl($dom(el).text()))
     })
@@ -46,7 +46,7 @@ function scrappAccessTokens ($dom) {
 
 function getAccessTokenFromUrl (url) {
   const rg = /access_token=(.*)\&count/
-  if (!rg.test(url)) Error(`AccessTokenUrl ${url} isn't correct`)
+  if (!rg.test(url)) debug(`AccessTokenUrl ${url} isn't correct`)
   return rg.exec(url)[1]
 }
 
@@ -71,11 +71,11 @@ function scrapp (url) {
   })
 }
 
-function getBingResults (query) {
+function getBingResults (query, i) {
   return new Promise((resolve, reject) => {
     Bing.web(query, {
-      top: 20, // Number of results (max 50)
-      skip: 1
+      top: 1, // Number of results (max 50)
+      skip: i
     }, (err, res, body) => {
       if (err) reject(err)
       resolve(body.d.results)
@@ -83,18 +83,22 @@ function getBingResults (query) {
   })
 }
 
+function getAccessTokenFromUsersProfile ($doms) {
+  return Promise.all($doms.map(getAccessTokenFromUserProfile))
+}
+
 function getAccessTokenFromUserProfile ($dom) {
   return new Promise((resolve, reject) => {
-    const elem = $dom('.next_url')
-    if (!elem) reject(new Error(`Can't found a access_token on UserProfile`))
-    const urlAccessToken = getAccessTokenFromUrl(decodeUrl(elem.text()))
-    if (!urlAccessToken) reject(Error('urlAccessToken not valid'))
+    const elem = $dom('.next_url').text()
+    if (elem.length === 0) debug(`Can't found a access_token on UserProfile`)
+    const urlAccessToken = getAccessTokenFromUrl(decodeUrl(elem))
+    if (!urlAccessToken) debug('urlAccessToken not valid')
     resolve(urlAccessToken)
   })
 }
 
 function decodeUrl (string) {
-  if (string.length === 0) throw Error(`string to decode isn't correct`)
+  if (string.length === 0) debug(`string to decode isn't correct`)
   return Base64.decode(string)
 }
 
@@ -108,12 +112,6 @@ function getAccessTokens ($doms) {
 
 function scrappUrls (urls) {
   return Promise.all(urls.map(scrapp))
-}
-
-function scrappUserProfiles (urls) {
-  return Promise.all(urls.map(url => {
-    return scrapp(url).then(getAccessTokenFromUserProfile)
-  }))
 }
 
 function followUsers (users) {
@@ -133,7 +131,7 @@ function getBlendUrls ($dom) {
     let urls = []
     $dom('.blend-title a').each((i, el) => {
       const elm = $dom(el)
-      if (!elm) reject(Error(`Blend URL isn't correct`))
+      if (!elm) debug(`Blend URL isn't correct`)
       debug(`📖  Reading: ${i} ${elm.text()}`)
       urls.push(`${INSTAGRIN_URL}${elm.attr('href')}`)
     })
@@ -148,34 +146,23 @@ function followAndSaveTokens (tokens) {
   })
 }
 
-function main () {
-  cmd
-    .version('0.0.1')
-    .option('-p, --peppers', 'Add peppers')
-    .option('-P, --pineapple', 'Add pineapple')
-    .option('-b, --bbq-sauce', 'Add bbq sauce')
-    .option('-c, --cheese [type]', 'Add the specified type of cheese [marble]', 'marble')
-    .parse(process.argv)
-
-  cmd.on('blend', () => {
-    // Command: blends (?) - slow
-    scrapp(BLEND_PAGE_URL)
-      .then(getBlendUrls)
-      .then(scrappUrls)
-      .then(getAccessTokens)
-      .then(followAndSaveTokens)
-      .catch(err => debug(err))
-  })
-
-  cmd.on('bind', () => {
-    // Command: bing - fast
-    getBingResults(QUERY_INSTAGRIN_USERS)
-      .then(getUrlsFromBingResults)
-      .then(scrappUserProfiles)
-      .then(followUsers)
-      .then(saveAccessTokens)
-      .catch(err => debug(err))
-  })
+function blend () {
+  // Command: blend - slow
+  scrapp(BLEND_PAGE_URL)
+    .then(getBlendUrls)
+    .then(scrappUrls)
+    .then(getAccessTokens)
+    .then(followAndSaveTokens)
+    .catch(err => debug(err))
 }
 
-main()
+function bing (i) {
+  // Command: bing - fast
+  getBingResults(QUERY_INSTAGRIN_USERS, i)
+    .then(getUrlsFromBingResults)
+    .then(scrappUrls)
+    .then(getAccessTokenFromUsersProfile)
+    .then(followUsers)
+    .then(saveAccessTokens)
+    .catch(err => debug(err))
+}
