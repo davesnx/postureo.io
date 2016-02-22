@@ -88,7 +88,7 @@ function main () {
     .then(accessTokens => accessTokens.map(accessToken => {
       setTimeout(() => {
         console.log('accessToken ->', accessToken)
-        // followUser(accessToken, INSTAGRAM_UID)
+        followUser(accessToken, INSTAGRAM_UID)
       }, 3000)
     }))
     .catch(err => console.log(err))
