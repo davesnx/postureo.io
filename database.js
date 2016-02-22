@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import {DATABASE, PORT, CONNECT_OPTIONS} from './config'
+import { DATABASE, PORT, CONNECT_OPTIONS } from './config'
 
 function connect () {
   return mongoose.connect(DATABASE, CONNECT_OPTIONS).connection

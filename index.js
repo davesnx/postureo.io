@@ -2,18 +2,28 @@ import request from 'request-promise'
 import cheerio from 'cheerio'
 import Bing from 'node-bing-api' // eslint-disable-line no-unused-var
 import instagram from 'instagram-node'
-require('./database.js')
-import { BING_API_KEY, INSTAGRAM_UID } from './config'
+import './database'
+import At from './accessTokenModel'
 
 const insta = instagram.instagram()
 Bing({ accKey: BING_API_KEY }) // eslint-disable-line no-unused-var
 const INSTAGRIN_URL = 'https://instagr.in'
 const BLEND_PAGE_URL = `${INSTAGRIN_URL}/blend/`
+import { BING_API_KEY, INSTAGRAM_UID } from './config'
+
+function saveAccessToken (accessToken) {
+  const at = new At()
+  at.save()
+}
 
 // TODO: Create a database for save the accessToken, with followed, date, picturesLiked
 // TODO: Use Bing for search for 'site:instagr.in User Profile' and scrap
 // TODO: Implement crawlAccessTokenFromUserProfile with base64 decode
 // TODO: Create method to like media items https://github.com/mckelvey/instagram-node-lib
+// TODO: Create a cli parameters for pass process.env
+// TODO: Implement the commands https://www.npmjs.com/package/commander
+// TODO: Create a menu for launch the commands
+
 // https://datamarket.azure.com/dataset/explore/bing/search
 // const querySiteInstagrin = 'site:instagr.in User Profile'
 // Bing.web(querySiteInstagrin, {
@@ -43,14 +53,16 @@ function getAccessTokenFromUrl (url) {
   return rg.exec(url)[1]
 }
 
+
 function followUser (accessToken, userId = INSTAGRAM_UID) {
   console.log(`👌  Follow ${userId} by ${accessToken}`)
   // TODO: Save model to database
-  // insta.use({ access_token: accessToken })
-  // insta.set_user_relationship(userId, 'follow', (err, result, remaining, limit) => {
-  //   if (err) console.log('Error ' + err.code + ': ' + err.error_message)
-  //   else console.log(result)
-  // })
+  insta.use({ access_token: accessToken })
+  insta.set_user_relationship(userId, 'follow', (err, result, remaining, limit) => {
+    if (err) console.log('Error ' + err.code + ': ' + err.error_message)
+    else console.log(result)
+  })
+  saveAccessToken(accessToken)
 }
 
 function scrappBlendUrls ($) {
