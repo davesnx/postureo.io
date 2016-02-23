@@ -8,6 +8,7 @@ import At from './model'
 import { BING_API_KEY, INSTAGRAM_UID } from './config'
 import {debug} from './utils.js'
 import { Base64 } from 'js-base64'
+import randomUa from 'random-ua'
 
 const insta = instagram.instagram()
 const INSTAGRIN_URL = 'https://instagr.in'
@@ -74,12 +75,11 @@ function getBingResults (query, i = 0) {
   return new Promise((resolve, reject) => {
     Bing.web(query, {
       top: 1,
-      skip: i
+      skip: i,
+      userAgent: randomUa.generate()
     }, (err, res, body) => {
       if (err) reject(err)
       if (res) {
-        console.log('res', res)
-        process.exit()
         if (res.statusCode !== 200) reject(res.statusMessage)
         if (res.statusCode === 200 && body.d.results.length) resolve(body.d.results)
       }

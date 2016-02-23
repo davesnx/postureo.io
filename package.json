@@ -13,7 +13,8 @@
     "instagram-node": "0.5",
     "js-base64": "^2.1.9",
     "mongoose": "^4.4.4",
-    "node-bing-api": "^2.3.0"
+    "node-bing-api": "^2.3.0",
+    "random-ua": "0.0.6"
   },
   "scripts": {
     "start": "babel-node index.js",
