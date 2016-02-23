@@ -16,6 +16,12 @@ const BLEND_PAGE_URL = `${INSTAGRIN_URL}/blend/`
 const QUERY_INSTAGRIN_USERS = 'site:instagr.in User Profile'
 const Bing = require('node-bing-api')({ accKey: BING_API_KEY })
 
+function delay (time) {
+  return new Promise((fn) => {
+    setTimeout(fn, time)
+  })
+}
+
 function saveAccessToken (accessToken) {
   return new Promise((resolve, reject) => {
     const at = At({ followed: false, at: accessToken })
@@ -130,7 +136,7 @@ function blend () {
             return ats.map(at => {
               console.log('at', at)
               followUser(at)
-              // saveAccessToken(at)
+              saveAccessToken(at)
             })
           })
       })
@@ -145,7 +151,6 @@ function bing (i) {
       return urls.map(url => {
         return scrapp(url)
           .then(getAccessTokenFromUserProfile)
-
           .then(saveAccessToken)
           .then(followUser)
           .catch(err => debug(err))
@@ -156,7 +161,7 @@ function bing (i) {
 
 blend()
 for (var i = 0; i < 10000; i++) {
-  setTimeout(() => {
+  delay(3000).then(() => {
     bing(i)
-  }, 3000)
+  })
 }
