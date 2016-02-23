@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import Promise from 'bluebird'
 import './database'
+import Promise from 'bluebird'
 import request from 'request-promise'
 import cheerio from 'cheerio'
 import instagram from 'instagram-node'
@@ -14,12 +14,6 @@ const INSTAGRIN_URL = 'https://instagr.in'
 const BLEND_PAGE_URL = `${INSTAGRIN_URL}/blend/`
 const QUERY_INSTAGRIN_USERS = 'site:instagr.in User Profile'
 const Bing = require('node-bing-api')({ accKey: BING_API_KEY })
-
-function delay (time) {
-  return new Promise((fn) => {
-    setTimeout(fn, time)
-  })
-}
 
 function saveAccessToken (accessToken) {
   return new Promise((resolve, reject) => {
@@ -44,16 +38,16 @@ function followUser (accessToken, userId = INSTAGRAM_UID) {
   })
 }
 
-function scrappAccessTokens ($dom) {
+function getAccessTokensFromBlendPage ($dom) {
   return new Promise((resolve, reject) => {
     let urls = []
     if (!$dom) reject(Error('Some error with crawling the HTML'))
     const nextUrlChildrens = $dom('.next_url').children()
     if (nextUrlChildrens.length === 0) reject(Error('Access Tokens not available'))
     nextUrlChildrens.each((i, el) => {
-      urls.push($dom(el).text())
+      urls.push(getAccessTokenFromUrl($dom(el).text()))
     })
-    resolve(getAccessTokenFromUrl(urls))
+    resolve(urls)
   })
 }
 
@@ -79,11 +73,16 @@ function scrapp (url) {
 function getBingResults (query, i = 0) {
   return new Promise((resolve, reject) => {
     Bing.web(query, {
-      top: 150, // Number of results (max 50)
+      top: 1,
       skip: i
     }, (err, res, body) => {
       if (err) reject(err)
-      resolve(body.d.results)
+      if (res) {
+        console.log('res', res)
+        process.exit()
+        if (res.statusCode !== 200) reject(res.statusMessage)
+        if (res.statusCode === 200 && body.d.results.length) resolve(body.d.results)
+      }
     })
   })
 }
@@ -120,34 +119,20 @@ function getBlendUrls ($dom) {
   })
 }
 
-function followAndSaveTokens (tokens) {
-  return Promise.all(tokens.map(token => {
-    return saveAccessToken(token).then(followUser)
-  }))
-}
-
-function getBlendUrl ($dom) {
-  return new Promise((resolve, reject) => {
-    $dom('.blend-title a').each((i, el) => {
-      const text = el.attribs.title
-      const href = el.attribs.href
-      if (!el) reject(Error(`Blend URL isn't correct`))
-      debug(`📖  Reading: ${i} ${text}`)
-      resolve(`${INSTAGRIN_URL}${href}`)
-    })
-  })
-}
-
 function blend () {
   scrapp(BLEND_PAGE_URL)
     .then(getBlendUrls)
     .then(urls => {
       return urls.map(url => {
         return scrapp(url)
-          .then(scrappAccessTokens)
-          .then(saveAccessToken)
-          .then(followUser)
-          .catch(err => debug(err))
+          .then(getAccessTokensFromBlendPage)
+          .then(ats => {
+            return ats.map(at => {
+              console.log('at', at)
+              followUser(at)
+              // saveAccessToken(at)
+            })
+          })
       })
     })
     .catch(err => debug(err))
@@ -160,6 +145,7 @@ function bing (i) {
       return urls.map(url => {
         return scrapp(url)
           .then(getAccessTokenFromUserProfile)
+
           .then(saveAccessToken)
           .then(followUser)
           .catch(err => debug(err))
@@ -168,4 +154,9 @@ function bing (i) {
     .catch(err => debug(err))
 }
 
-bing(10)
+blend()
+for (var i = 0; i < 10000; i++) {
+  setTimeout(() => {
+    bing(i)
+  }, 3000)
+}
