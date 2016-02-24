@@ -34,11 +34,11 @@ function saveAccessToken (accessToken) {
 }
 
 function followUser (accessToken, userId = INSTAGRAM_UID) {
-  debug(`👌  Follow ${userId} by ${accessToken}`)
   insta.use({ access_token: accessToken })
   insta.set_user_relationship(userId, 'follow', (err, result, remaining, limit) => {
     if (err) debug('Error ' + err.code + ': ' + err.error_message)
     else {
+      debug(`👌  Follow ${userId} by ${accessToken}`)
       debug(result)
       return accessToken
     }
@@ -159,8 +159,8 @@ function bing (i) {
 }
 
 blend()
-for (var i = 0; i < 10000; i++) {
-  delay(3000).then(() => {
-    bing(i)
-  })
-}
+// for (var i = 0; i < 10000; i++) {
+//   delay(3000).then(() => {
+//     bing(i)
+//   })
+// }
