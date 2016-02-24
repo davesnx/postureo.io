@@ -134,7 +134,6 @@ function blend () {
           .then(getAccessTokensFromBlendPage)
           .then(ats => {
             return ats.map(at => {
-              console.log('at', at)
               followUser(at)
               saveAccessToken(at)
             })
