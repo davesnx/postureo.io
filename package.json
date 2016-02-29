@@ -1,15 +1,34 @@
 {
   "name": "postureo.io",
   "version": "0.1.0",
-  "description": "Scrape instagr.in and ctach access_token with instagram-node dependency",
-  "main": "app.js",
+  "description": "POC: Insta-followers",
   "author": "@davesnx",
+  "main": "src/index.js",
   "dependencies": {
-    "express": "latest",
-    "request": "latest",
-    "cheerio": "latest",
+    "babel-cli": "^6.0.0",
+    "babel-preset-es2015": "^6.0.0",
+    "babel-preset-stage-0": "^6.5.0",
+    "bluebird": "^3.3.1",
+    "cheerio": "^0.20.0",
+    "dotenv": "^2.0.0",
     "instagram-node": "0.5",
-    "google": "^0.6.0",
-    "base64": "^2.1.0"
+    "js-base64": "^2.1.9",
+    "mongoose": "^4.4.4",
+    "node-bing-api": "^2.3.0",
+    "random-ua": "0.0.6"
+  },
+  "scripts": {
+    "start": "babel-node src/index.js",
+    "watch": "nodemon --exec babel-node -- src/index.js",
+    "test": ""
+  },
+  "standard": {
+    "globals": []
+  },
+  "babel": {
+    "presets": [
+      "es2015",
+      "stage-0"
+    ]
   }
 }
