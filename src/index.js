@@ -1,12 +1,10 @@
 #!/usr/bin/env node
 import './database'
 import Promise from 'bluebird'
-import request from 'request-promise'
-import cheerio from 'cheerio'
 import instagram from 'instagram-node'
 import At from './model'
 import { BING_API_KEY, INSTAGRAM_UID } from './config'
-import {debug} from './utils.js'
+import { debug, scrapp, delay } from './utils.js' // eslint-disable-line
 import { Base64 } from 'js-base64'
 import randomUa from 'random-ua'
 
@@ -15,11 +13,42 @@ const INSTAGRIN_URL = 'https://instagr.in'
 const BLEND_PAGE_URL = `${INSTAGRIN_URL}/blend/`
 const QUERY_INSTAGRIN_USERS = 'site:instagr.in User Profile'
 const Bing = require('node-bing-api')({ accKey: BING_API_KEY })
+const HOUR = 60 * 60
 
-function delay (time) {
-  return new Promise((fn) => {
-    setTimeout(fn, time)
-  })
+// followPerHour
+// func: Get Database and followUser
+//       Update Database with followed: true
+function followPerHour () {
+  setTimeout(() => {
+
+  }, HOUR)
+}
+
+// getBlendEachHour
+// throw blend each hour
+function getBlendEachHour () {
+  setTimeout(() => {
+    blendScrap()
+    // for (var i = 0; i < 10000; i++) {
+    //   delay(3000).then(() => {
+    //     bing(i)
+    //   })
+    // }
+  }, HOUR)
+}
+
+// getBlendEachHour
+// throw bingSearch each Something(X)
+// TO TEST!
+function getBingEachX () {
+  setTimeout(() => {
+    blend()
+    // for (var i = 0; i < 10000; i++) {
+    //   delay(3000).then(() => {
+    //     bing(i)
+    //   })
+    // }
+  }, HOUR)
 }
 
 function saveAccessToken (accessToken) {
@@ -39,7 +68,7 @@ function followUser (accessToken, userId = INSTAGRAM_UID) {
     if (err) debug('Error ' + err.code + ': ' + err.error_message)
     else {
       debug(`👌  Follow ${userId} by ${accessToken}`)
-      debug(result)
+      // debug(result)
       return accessToken
     }
   })
@@ -64,19 +93,6 @@ function getAccessTokenFromUrl (url) {
   return rg.exec(url)[1]
 }
 
-function cheerioLoader (body) {
-  return cheerio.load(body)
-}
-
-function scrapp (url) {
-  debug(`🌐  Scrapping ${url}`)
-  return new Promise((resolve, reject) => {
-    request({ uri: url, transform: cheerioLoader })
-      .then((html) => resolve(html))
-      .catch((err) => reject(err))
-  })
-}
-
 function getBingResults (query, i = 0) {
   return new Promise((resolve, reject) => {
     Bing.web(query, {
@@ -85,10 +101,8 @@ function getBingResults (query, i = 0) {
       userAgent: randomUa.generate()
     }, (err, res, body) => {
       if (err) reject(err)
-      if (res) {
-        if (res.statusCode !== 200) reject(res.statusMessage)
-        if (res.statusCode === 200 && body.d.results.length) resolve(body.d.results)
-      }
+      if (res.statusCode !== 200) reject(res.statusMessage)
+      else if (body.d.results.length) resolve(body.d.results)
     })
   })
 }
@@ -125,7 +139,7 @@ function getBlendUrls ($dom) {
   })
 }
 
-function blend () {
+function blendScrap () {
   scrapp(BLEND_PAGE_URL)
     .then(getBlendUrls)
     .then(urls => {
@@ -134,7 +148,6 @@ function blend () {
           .then(getAccessTokensFromBlendPage)
           .then(ats => {
             return ats.map(at => {
-              followUser(at)
               saveAccessToken(at)
             })
           })
@@ -143,7 +156,7 @@ function blend () {
     .catch(err => debug(err))
 }
 
-function bing (i) {
+function bingSearch (i) {
   getBingResults(QUERY_INSTAGRIN_USERS, i)
     .then(getUrlsFromBingResults)
     .then(urls => {
@@ -151,16 +164,8 @@ function bing (i) {
         return scrapp(url)
           .then(getAccessTokenFromUserProfile)
           .then(saveAccessToken)
-          .then(followUser)
           .catch(err => debug(err))
       })
     })
     .catch(err => debug(err))
 }
-
-blend()
-// for (var i = 0; i < 10000; i++) {
-//   delay(3000).then(() => {
-//     bing(i)
-//   })
-// }
