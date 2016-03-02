@@ -149,6 +149,7 @@ function blendScrap () {
           .then(ats => {
             return ats.map(at => {
               saveAccessToken(at)
+              // followUser(at)
             })
           })
       })
@@ -164,8 +165,14 @@ function bingSearch (i) {
         return scrapp(url)
           .then(getAccessTokenFromUserProfile)
           .then(saveAccessToken)
+          // .then(followUser)
           .catch(err => debug(err))
       })
     })
     .catch(err => debug(err))
 }
+
+blendScrap()
+setInterval(() => {
+  blendScrap()
+}, 50000)
