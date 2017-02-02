@@ -19,8 +19,9 @@
   },
   "scripts": {
     "start": "babel-node src/index.js",
+    "db": "bash scripts/run-db.sh",
     "watch": "nodemon --exec babel-node -- src/index.js",
-    "test": ""
+    "test": "echo 'http://cdn.meme.am/instances/500x/67176542.jpg'"
   },
   "standard": {
     "globals": []
